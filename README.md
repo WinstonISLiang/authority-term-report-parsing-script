@@ -12,7 +12,7 @@ The parser reads report blocks like:
 
 and supports two parse modes:
 
-### 1) `summary` mode (existing)
+### 1) `summary` mode
 
 One CSV row per **authority term + data file** combination.
 
@@ -24,7 +24,7 @@ Output columns:
 - `data_file_id`
 - `occurrence`
 
-### 2) `detailed` mode (new)
+### 2) `detailed` mode
 
 One CSV row per **object record** (the individual lines under each `Data file = ...` block).
 
