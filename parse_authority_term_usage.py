@@ -155,7 +155,12 @@ def parse_detailed_report(input_path: Path) -> list[dict[str, str]]:
     Parse object-level rows under each data file block.
 
     Detailed mode output columns:
-        object_id, object_description, system_id, authority_term, data_file
+        referenced record_authority system id,
+        referenced record_authority description,
+        authority term system id,
+        authority term,
+        referenced datafile,
+        featured in field
 
     Notes on line wrapping:
     - Vernon sometimes wraps the object description onto the next line.
@@ -169,6 +174,7 @@ def parse_detailed_report(input_path: Path) -> list[dict[str, str]]:
 
     current_term: str | None = None
     current_term_id: str | None = None
+    current_data_file_id: str | None = None
 
     # True while we are inside a "Data file = ..." block and before the
     # matching "Number of times the term is used = ..." line.
@@ -196,13 +202,16 @@ def parse_detailed_report(input_path: Path) -> list[dict[str, str]]:
             if current_term is None or current_term_id is None:
                 continue
 
-            if DATA_FILE_PATTERN.match(stripped):
+            data_file_match = DATA_FILE_PATTERN.match(stripped)
+            if data_file_match:
                 in_data_file_block = True
+                current_data_file_id = data_file_match.group(2).strip()
                 last_row_index = None
                 continue
 
             if OCCURRENCE_PATTERN.match(stripped):
                 in_data_file_block = False
+                current_data_file_id = None
                 last_row_index = None
                 continue
 
@@ -222,11 +231,12 @@ def parse_detailed_report(input_path: Path) -> list[dict[str, str]]:
 
                 rows.append(
                     {
-                        "object_id": object_id,
-                        "object_description": object_description,
-                        "system_id": current_term_id,
-                        "authority_term": current_term,
-                        "data_file": field_containing_term,
+                        "referenced record_authority system id": object_id,
+                        "referenced record_authority description": object_description,
+                        "authority term system id": current_term_id,
+                        "authority term": current_term,
+                        "referenced datafile": current_data_file_id or "",
+                        "featured in field": field_containing_term,
                     }
                 )
                 last_row_index = len(rows) - 1
@@ -237,8 +247,10 @@ def parse_detailed_report(input_path: Path) -> list[dict[str, str]]:
             if last_row_index is not None:
                 continuation = stripped
                 if continuation:
-                    previous = rows[last_row_index]["object_description"]
-                    rows[last_row_index]["object_description"] = (
+                    previous = rows[last_row_index][
+                        "referenced record_authority description"
+                    ]
+                    rows[last_row_index]["referenced record_authority description"] = (
                         f"{previous} {continuation}".strip()
                     )
 
@@ -293,11 +305,12 @@ def main() -> None:
     else:
         rows = parse_detailed_report(input_path)
         fieldnames = [
-            "object_id",
-            "object_description",
-            "system_id",
-            "authority_term",
-            "data_file",
+            "referenced record_authority system id",
+            "referenced record_authority description",
+            "authority term system id",
+            "authority term",
+            "referenced datafile",
+            "featured in field",
         ]
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
