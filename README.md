@@ -12,7 +12,7 @@ The parser reads report blocks like:
 
 and supports two parse modes:
 
-### 1) `summary` mode
+### 1) `summary` mode (existing)
 
 One CSV row per **authority term + data file** combination.
 
@@ -24,17 +24,18 @@ Output columns:
 - `data_file_id`
 - `occurrence`
 
-### 2) `detailed` mode
+### 2) `detailed` mode (new)
 
 One CSV row per **object record** (the individual lines under each `Data file = ...` block).
 
 Output columns:
 
-- `object_id`
-- `object_description`
-- `system_id`
-- `authority_term`
-- `data_file`
+- `referenced record_authority system id`
+- `referenced record_authority description`
+- `authority term system id`
+- `authority term`
+- `referenced datafile`
+- `featured in field`
 
 ## Requirements
 
@@ -68,7 +69,8 @@ py -3 parse_authority_term_usage.py --mode detailed --input "C:\path\to\Authorit
 - In `summary` mode, it captures summary usage counts.
 - In `detailed` mode, it captures individual record lines.
 - In `summary` mode, labels like `Person: Biography Role` are simplified so `data_file` becomes `Biography Role`, while `data_file_id` is preserved.
-- In `detailed` mode, `data_file` is the report's "Field Containing Term" value (for example `Biographical Role`).
+- In `detailed` mode, `referenced datafile` comes from the `Data file = ... (ID)` block (for example `PERSON`, `PE_BIO_ROLE`).
+- In `detailed` mode, `featured in field` is the report's "Field Containing Term" value (for example `Biographical Role`).
 - Detailed mode handles wrapped descriptions, for example:
   - `C56149 ... Frederick James William Stewart ...`
   - next line: `(Christchurch)`
@@ -87,8 +89,8 @@ system_id,authority_term,data_file,data_file_id,occurrence
 If `detailed` mode parsing works correctly, the CSV will look like this:
 
 ```csv
-object_id,object_description,system_id,authority_term,data_file
-105545,Cenotaph; Finlay James Parkinson (Auckland),10853,Sports goods worker,Biographical Role
-123195,Cenotaph; Donald Francis Cederwall (Gisborne),10853,Sports goods worker,Biographical Role
-130778,Cenotaph; Percy Leonard Cowsill (Auckland),10853,Sports goods worker,Biographical Role
+referenced record_authority system id,referenced record_authority description,authority term system id,authority term,referenced datafile,featured in field
+105545,Cenotaph; Finlay James Parkinson (Auckland),10853,Sports goods worker,PERSON,Biographical Role
+123195,Cenotaph; Donald Francis Cederwall (Gisborne),10853,Sports goods worker,PERSON,Biographical Role
+130778,Cenotaph; Percy Leonard Cowsill (Auckland),10853,Sports goods worker,PERSON,Biographical Role
 ```
